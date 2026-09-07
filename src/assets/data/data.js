@@ -41,7 +41,7 @@ export const data = {
                 finish: 'Selesai'
             }
         },
-        address: `(Kediaman mempelai putri)\nDsn. Pager Kulon RT 001/RW 003,\nDs. Pager, Kec. Purwosari, Kab. Pasuruan.`
+        address: `(Kediaman mempelai putri)\nDsn. Pager Kulon RT 007/RW 003,\nDs. Pager, Kec. Purwosari, Kab. Pasuruan.`
     },
 
     link: {
