@@ -25,7 +25,9 @@ export const welcome = () => {
 
         if (params) {
             weddingToElement.innerHTML = `Kepada Yth Bapak/Ibu/Saudara/i<br><span>${params}</span>`;
-            name.value = params;
+            if (name) {
+                name.value = params;
+            }
         } else {
             weddingToElement.innerHTML = `Kepada Yth Bapak/Ibu/Saudara/i<br><span>Teman-teman semua</span>`;
         }

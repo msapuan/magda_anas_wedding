@@ -38,13 +38,11 @@ export const wishas = () => {
         let giftParam = getQueryParameter('g');
         const loveGiftContainer = document.querySelector('#love-gift');
 
-        if (giftParam === '0') {
+        if (!loveGiftContainer) return;
+
+        if (!giftParam || giftParam === '0') {
             loveGiftContainer.style.display = 'none';
             return;
-        }
-
-        if (!giftParam) {
-            giftParam = 'all';
         }
 
         loveGiftContainer.style.display = 'block';
