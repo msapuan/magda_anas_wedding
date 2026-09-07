@@ -29,7 +29,7 @@ export const welcome = () => {
                 name.value = params;
             }
         } else {
-            weddingToElement.innerHTML = `Kepada Yth Bapak/Ibu/Saudara/i<br><span>Dulur dulur semua</span>`;
+            weddingToElement.innerHTML = `Kepada Yth Bapak/Ibu/Saudara/i<br><span>Dulur dulurku semua</span>`;
         }
     }
 
