@@ -12,9 +12,14 @@ import { comentarService } from "../services/comentarService.js";
 
 export const wishas = () => {
     const wishasContainer = document.querySelector('.wishas');
-    const [_, form] = wishasContainer.children[2].children;
-    const [peopleComentar, ___, containerComentar] = wishasContainer.children[3].children;
-    const buttonForm = form.children[6];
+    // Guard clause: jika elemen .wishas tidak ada di DOM (misal di-comment di HTML), keluar dengan aman
+    if (!wishasContainer) return;
+
+    // Selector semantik (Best Practice: hindari manipulasi indeks children yang rapuh)
+    const form = wishasContainer.querySelector('form');
+    const buttonForm = form?.querySelector('button[type="submit"]') || form?.querySelector('button');
+    const containerComentar = wishasContainer.querySelector('ul[aria-label="list comentar"]');
+    const peopleComentar = containerComentar?.parentElement?.querySelector('p');
     const pageNumber = wishasContainer.querySelector('.page-number');
     const [prevButton, nextButton] = wishasContainer.querySelectorAll('.button-grup button');
 
@@ -35,7 +40,7 @@ export const wishas = () => {
     };
 
     const initialBank = () => {
-        let giftParam = getQueryParameter('g');
+        const giftParam = getQueryParameter('g');
         const loveGiftContainer = document.querySelector('#love-gift');
 
         if (!loveGiftContainer) return;
@@ -47,8 +52,8 @@ export const wishas = () => {
 
         loveGiftContainer.style.display = 'block';
 
-        const wishasBank = wishasContainer.children[1];
-        const [_, __, containerBank] = wishasBank.children;
+        const containerBank = loveGiftContainer.querySelector('div');
+        if (!containerBank) return;
 
         let filteredBank = data.bank;
         if (giftParam === 'all') {
@@ -108,9 +113,11 @@ export const wishas = () => {
     let lengthComentar;
 
     const initialComentar = async () => {
+        if (!containerComentar) return;
+
         containerComentar.innerHTML = `<h1 style="font-size: 1rem; margin: auto">Loading...</h1>`;
-        peopleComentar.textContent = '...';
-        pageNumber.textContent = '..';
+        if (peopleComentar) peopleComentar.textContent = '...';
+        if (pageNumber) pageNumber.textContent = '..';
 
         try {
             const response = await comentarService.getComentar();
@@ -119,48 +126,56 @@ export const wishas = () => {
             lengthComentar = comentar.length;
             comentar.reverse();
 
-            if (comentar.length > 0) {
-                peopleComentar.textContent = `${comentar.length} Orang telah mengucapkan`;
-            } else {
-                peopleComentar.textContent = `Belum ada yang mengucapkan`;
+            if (peopleComentar) {
+                if (comentar.length > 0) {
+                    peopleComentar.textContent = `${comentar.length} Orang telah mengucapkan`;
+                } else {
+                    peopleComentar.textContent = `Belum ada yang mengucapkan`;
+                }
             }
 
-            pageNumber.textContent = '1';
+            if (pageNumber) pageNumber.textContent = '1';
             renderElement(comentar.slice(startIndex, endIndex), containerComentar, listItemComentar);
         } catch (error) {
             return `Error : ${error.message}`;
         }
     };
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        buttonForm.textContent = 'Loading...';
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (buttonForm) buttonForm.textContent = 'Loading...';
 
-        const comentar = {
-            id: generateRandomId(),
-            name: e.target.name.value,
-            status: e.target.status.value === 'y' ? 'Hadir' : 'Tidak Hadir',
-            message: e.target.message.value,
-            date: getCurrentDateTime(),
-            color: generateRandomColor(),
-        };
+            const comentar = {
+                id: generateRandomId(),
+                name: e.target.name.value,
+                status: e.target.status.value === 'y' ? 'Hadir' : 'Tidak Hadir',
+                message: e.target.message.value,
+                date: getCurrentDateTime(),
+                color: generateRandomColor(),
+            };
 
-        try {
-            const response = await comentarService.getComentar();
+            try {
+                const response = await comentarService.getComentar();
 
-            await comentarService.addComentar(comentar);
+                await comentarService.addComentar(comentar);
 
-            lengthComentar = response.comentar.length;
+                lengthComentar = response.comentar.length;
 
-            peopleComentar.textContent = `${++response.comentar.length} Orang telah mengucapkan`;
-            containerComentar.insertAdjacentHTML('afterbegin', listItemComentar(comentar));
-        } catch (error) {
-            return `Error : ${error.message}`;
-        } finally {
-            buttonForm.textContent = 'Kirim';
-            form.reset();
-        }
-    });
+                if (peopleComentar) {
+                    peopleComentar.textContent = `${++response.comentar.length} Orang telah mengucapkan`;
+                }
+                if (containerComentar) {
+                    containerComentar.insertAdjacentHTML('afterbegin', listItemComentar(comentar));
+                }
+            } catch (error) {
+                return `Error : ${error.message}`;
+            } finally {
+                if (buttonForm) buttonForm.textContent = 'Kirim';
+                form.reset();
+            }
+        });
+    }
 
     // click prev & next
     let currentPage = 1;
@@ -169,10 +184,12 @@ export const wishas = () => {
     let endIndex = itemsPerPage;
 
     const updatePageContent = async () => {
+        if (!containerComentar) return;
+
         containerComentar.innerHTML = '<h1 style="font-size: 1rem; margin: auto">Loading...</h1>';
-        pageNumber.textContent = '..';
-        prevButton.disabled = true;
-        nextButton.disabled = true;
+        if (pageNumber) pageNumber.textContent = '..';
+        if (prevButton) prevButton.disabled = true;
+        if (nextButton) nextButton.disabled = true;
 
         try {
             const response = await comentarService.getComentar();
@@ -181,32 +198,36 @@ export const wishas = () => {
             comentar.reverse();
 
             renderElement(comentar.slice(startIndex, endIndex), containerComentar, listItemComentar);
-            pageNumber.textContent = currentPage.toString();
+            if (pageNumber) pageNumber.textContent = currentPage.toString();
         } catch (error) {
             console.log(error);
         } finally {
-            prevButton.disabled = false;
-            nextButton.disabled = false;
+            if (prevButton) prevButton.disabled = false;
+            if (nextButton) nextButton.disabled = false;
         }
+    };
+
+    if (nextButton) {
+        nextButton.addEventListener('click', async () => {
+            if (endIndex <= lengthComentar) {
+                currentPage++;
+                startIndex = (currentPage - 1) * itemsPerPage;
+                endIndex = startIndex + itemsPerPage;
+                await updatePageContent();
+            }
+        });
     }
 
-    nextButton.addEventListener('click', async () => {
-        if (endIndex <= lengthComentar) {
-            currentPage++;
-            startIndex = (currentPage - 1) * itemsPerPage;
-            endIndex = startIndex + itemsPerPage;
-            await updatePageContent();
-        }
-    });
-
-    prevButton.addEventListener('click', async () => {
-        if (currentPage > 1) {
-            currentPage--;
-            startIndex = (currentPage - 1) * itemsPerPage;
-            endIndex = startIndex + itemsPerPage;
-            await updatePageContent();
-        }
-    });
+    if (prevButton) {
+        prevButton.addEventListener('click', async () => {
+            if (currentPage > 1) {
+                currentPage--;
+                startIndex = (currentPage - 1) * itemsPerPage;
+                endIndex = startIndex + itemsPerPage;
+                await updatePageContent();
+            }
+        });
+    }
 
     initialComentar().then();
     initialBank();
